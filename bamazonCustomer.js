@@ -46,7 +46,8 @@ function askUser () {
 ]).then(function(answer) {
     connection.query("SELECT * FROM products WHERE item_id=?", [answer.openStore], function(err, res) {
         if (err) throw err;
-        console.log(`You have selected to purchase the following item: ${res[0].product_name}.\n`);
+        var userChoice = res[0].product_name;
+        console.log(`You have selected to purchase the following item: ${userChoice}.\n`);
         console.log(`There are ${res[0].stock_quantity} of this item remaining.`);
         //confirmChoice();
         inquirer.prompt([{
@@ -62,12 +63,14 @@ function askUser () {
             }
         ]).then(function(answer) {
             console.log(`You have chosen to purchase ${answer.howMany}.`);
+            var newStock = res[0].stock_quantity - answer.howMany;
+            console.log(newStock);
 
             if (answer.howMany <= res[0].stock_quantity) {
-                console.log(`You have successfully purchased ${answer.howMany} ${res[0].product_name}.\n`);
+                console.log(`You have successfully purchased ${answer.howMany} ${userChoice}.\n`);
                 console.log(`Thank you for your purchase, have a nice day!`);
-                //connection.query(`UPDATE products SET ${res[0].stock_quantity} = ${res[0].stock_quantity} - ${answer.howMany} WHERE ${res[0].product_name}`);
-                console.log(`There are now ${res[0].stock_quantity} left in stock.`)
+                connection.query("UPDATE products SET ? WHERE ?", [{stock_quantity: newStock},{product_name: userChoice}]);
+                console.log(`There are now ${newStock} left in stock.`)
                 connection.end();
             } else {
                 console.log('Insufficient Quantity!')
@@ -78,20 +81,3 @@ function askUser () {
 })
 }
 
-
-
-//function confirmChoice () {
-//    inquirer.prompt([{
-//        name: "confirm",
-//        type: "confirm",
-//        message: "Are you sure?"
-//    }
-//]).then(function(answer) {
-//   if (answer.confirm == true) {
-//       console.log("Yes")
-//   } else {
-//       console.log("No")
-//   }
-//   connection.end();
-//})
-//}
